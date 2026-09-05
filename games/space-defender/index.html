@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Defender</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="game-container">
+
+        <header class="game-header">
+            <h1>SPACE DEFENDER</h1>
+
+            <div class="status">
+                <span>Pontuação: <strong id="pontuacao">0</strong></span>
+                <span>Vidas: <strong id="vidas">3</strong></span>
+            </div>
+        </header>
+
+        <main>
+            <canvas id="gameCanvas"></canvas>
+        </main>
+
+        <div class="instructions">
+            <p>WASD ou SETAS para mover</p>
+            <p>ESPAÇO para atirar</p>
+        </div>
+
+    </div>
+
+    <script src="game.js"></script>
+
+</body>
+</html>
