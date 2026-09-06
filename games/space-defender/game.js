@@ -31,6 +31,68 @@ const inimigos = [];
 let pontuacao = 0;
 let vidas = 3;
 let gameOver = false;
+let jogoPausado = false;
+
+document.addEventListener("visibilitychange", () => {
+
+    if (document.hidden) {
+        jogoPausado = true;
+    } else {
+        jogoPausado = false;
+    }
+
+});
+
+
+
+// ================================
+// ESTRELAS DO ESPAÇO
+// ================================
+
+const estrelas = [];
+
+for (let i = 0; i < 100; i++) {
+    estrelas.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        tamanho: Math.random() * 2 + 1,
+        velocidade: Math.random() * 1.5 + 0.5
+    });
+}
+
+function atualizarEstrelas() {
+
+    for (const estrela of estrelas) {
+
+        estrela.y += estrela.velocidade;
+
+        if (estrela.y > canvas.height) {
+            estrela.y = 0;
+            estrela.x = Math.random() * canvas.width;
+        }
+    }
+}
+
+function desenharEstrelas() {
+
+    for (const estrela of estrelas) {
+
+        ctx.fillStyle = "white";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            estrela.x,
+            estrela.y,
+            estrela.tamanho,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+}
+
 
 
 // ================================
@@ -111,21 +173,63 @@ function desenharNave() {
 
     ctx.translate(nave.x, nave.y);
 
+    // Corpo da nave
     ctx.beginPath();
 
     ctx.moveTo(0, -25);
-    ctx.lineTo(-20, 25);
-    ctx.lineTo(0, 15);
-    ctx.lineTo(20, 25);
+    ctx.lineTo(-20, 22);
+    ctx.lineTo(-8, 17);
+    ctx.lineTo(0, 25);
+    ctx.lineTo(8, 17);
+    ctx.lineTo(20, 22);
 
     ctx.closePath();
 
     ctx.fillStyle = "white";
     ctx.fill();
 
+
+    // Cabine
+    ctx.beginPath();
+
+    ctx.arc(0, -5, 7, 0, Math.PI * 2);
+
+    ctx.fillStyle = "#555";
+    ctx.fill();
+
+
+    // Motor esquerdo
+    ctx.fillStyle = "#aaa";
+
+    ctx.fillRect(-15, 20, 6, 10);
+
+    // Motor direito
+    ctx.fillRect(9, 20, 6, 10);
+
+
+    // Chamas dos motores
+    ctx.beginPath();
+
+    ctx.moveTo(-14, 30);
+    ctx.lineTo(-11, 38);
+    ctx.lineTo(-8, 30);
+
+    ctx.fillStyle = "white";
+    ctx.fill();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(8, 30);
+    ctx.lineTo(11, 38);
+    ctx.lineTo(14, 30);
+
+    ctx.fillStyle = "white";
+    ctx.fill();
+
+
     ctx.restore();
 }
-
 
 // ================================
 // TIROS
@@ -162,6 +266,12 @@ function desenharTiros() {
 
     for (const tiro of tiros) {
 
+        ctx.save();
+
+        // Brilho do tiro
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "white";
+
         ctx.fillStyle = "white";
 
         ctx.fillRect(
@@ -170,6 +280,8 @@ function desenharTiros() {
             tiro.largura,
             tiro.altura
         );
+
+        ctx.restore();
     }
 }
 
@@ -191,7 +303,7 @@ function criarInimigo() {
         largura: tamanho,
         altura: tamanho,
 
-        velocidade: 2
+        velocidade: 1.5
     });
 }
 
@@ -213,19 +325,49 @@ function desenharInimigos() {
 
     for (const inimigo of inimigos) {
 
-        ctx.fillStyle = "white";
+        ctx.save();
 
+        ctx.translate(inimigo.x, inimigo.y);
+
+
+        // Corpo do inimigo
         ctx.beginPath();
 
         ctx.arc(
-            inimigo.x,
-            inimigo.y,
+            0,
+            0,
             inimigo.largura / 2,
             0,
             Math.PI * 2
         );
 
+        ctx.fillStyle = "white";
         ctx.fill();
+
+
+        // Olho central
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            7,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle = "#333";
+        ctx.fill();
+
+
+        // Detalhes laterais
+        ctx.fillStyle = "#aaa";
+
+        ctx.fillRect(-20, -4, 6, 8);
+        ctx.fillRect(14, -4, 6, 8);
+
+
+        ctx.restore();
     }
 }
 
@@ -233,11 +375,11 @@ function desenharInimigos() {
 // Criar inimigo a cada 1 segundo
 setInterval(() => {
 
-    if (!gameOver) {
+    if (!gameOver && !jogoPausado) {
         criarInimigo();
     }
 
-}, 1000);
+}, 1200);
 
 
 // ================================
@@ -424,9 +566,6 @@ function reiniciarJogo() {
 // ================================
 
 function jogo() {
-
-    // Limpa a tela
-
     ctx.clearRect(
         0,
         0,
@@ -434,41 +573,44 @@ function jogo() {
         canvas.height
     );
 
+    atualizarEstrelas();
+    desenharEstrelas();
 
-    // Se estiver em Game Over
+ if (gameOver) {
 
-    if (gameOver) {
+    desenharNave();
+    desenharGameOver();
 
-        desenharNave();
+} else if (jogoPausado) {
 
-        desenharGameOver();
+    desenharNave();
+    desenharTiros();
+    desenharInimigos();
 
-    } else {
+} else {
 
-        atualizarNave();
+    atualizarNave();
 
-        atualizarTiros();
+    atualizarTiros();
 
-        atualizarInimigos();
+    atualizarInimigos();
 
-        verificarColisoes();
+    verificarColisoes();
 
-        verificarColisaoComNave();
+    verificarColisaoComNave();
 
+    desenharNave();
 
-        desenharNave();
+    desenharTiros();
 
-        desenharTiros();
-
-        desenharInimigos();
-    }
+    desenharInimigos();
+}
 
 
     // Continua o loop
 
     requestAnimationFrame(jogo);
 }
-
 
 // ================================
 // INICIAR JOGO
